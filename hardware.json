@@ -1,0 +1,29 @@
+{
+  "connection": {
+    "plc_ip": "192.168.1.54",
+    "plc_slot": 0,
+    "timeout": 2.0
+  },
+  "safety": {
+    "heartbeat_tag": "System_Heartbeat_Bit",
+    "heartbeat_interval": 0.5
+  },
+  "io_mapping": {
+    "PHASE_MAIN_THRU": {
+      "green_tags": ["Light_N_Green", "Light_S_Green"],
+      "yellow_tags": ["Light_N_Yellow", "Light_S_Yellow"]
+    },
+    "PHASE_MAIN_LEFT": {
+      "green_tags": ["Light_NL_Green", "Light_SR_Green"],
+      "yellow_tags": ["Light_NL_Yellow", "Light_SR_Yellow"]
+    },
+    "PHASE_CROSS_THRU": {
+      "green_tags": ["Light_W_Green", "Light_E_Green"],
+      "yellow_tags": ["Light_W_Yellow", "Light_E_Yellow"]
+    },
+    "PHASE_CROSS_LEFT": {
+      "green_tags": ["Light_WL_Green", "Light_ER_Green"],
+      "yellow_tags": ["Light_WL_Yellow", "Light_ER_Yellow"]
+    }
+  }
+}

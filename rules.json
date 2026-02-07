@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "version": "2.0",
+    "description": "Standard 4-Way Intersection Logic"
+  },
+  "timings": {
+    "yellow_duration": 3.5,
+    "all_red_clearance": 2.0,
+    "min_green": 5,
+    "max_green": 45,
+    "extension_interval": 1.0
+  },
+  "logic_flow": {
+    "startup_phase": "PHASE_MAIN_THRU",
+    "phases": [
+      "PHASE_MAIN_THRU",
+      "PHASE_MAIN_LEFT",
+      "PHASE_CROSS_THRU",
+      "PHASE_CROSS_LEFT"
+    ]
+  },
+  "priorities": {
+    "morning_rush": ["PHASE_MAIN_THRU", "PHASE_MAIN_LEFT"],
+    "evening_rush": ["PHASE_CROSS_THRU", "PHASE_CROSS_LEFT"]
+  }
+}
