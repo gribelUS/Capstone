@@ -4,8 +4,8 @@
     "description": "Standard 4-Way Intersection Logic"
   },
   "timings": {
-    "yellow_duration": 3.5,
-    "all_red_clearance": 2.0,
+    "yellow_duration": 4.5,
+    "all_red_clearance": 2.5,
     "min_green": 5,
     "max_green": 45,
     "extension_interval": 1.0
