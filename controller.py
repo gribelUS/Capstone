@@ -131,8 +131,8 @@ class TrafficController:
 
         try:
             while True:
-                # 1. Wait for Green Duration (Simplification of your logic)
-                # In real implementation, read your CV data here to decide when to break
+                # 1. Wait for Green Duration
+                # Read CV data here to decide when to break
                 green_time = self.rules["timings"]["min_green"]
                 print(
                     f"[LOGIC] Holding {self.current_phase} Green for {green_time}s..."
