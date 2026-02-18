@@ -8,22 +8,54 @@
     "heartbeat_tag": "System_Heartbeat_Bit",
     "heartbeat_interval": 0.5
   },
-  "io_mapping": {
-    "PHASE_MAIN_THRU": {
+  "detectors": {
+    "det_N_thru_1": { "approach": "N", "lane": "thru", "position": "stopbar", "cv_zone": 1 },
+    "det_N_thru_2": { "approach": "N", "lane": "thru", "position": "stopbar", "cv_zone": 2 },
+    "det_N_left":   { "approach": "N", "lane": "left", "position": "stopbar", "cv_zone": 3 },
+    "det_S_thru_1": { "approach": "S", "lane": "thru", "position": "stopbar", "cv_zone": 4 },
+    "det_S_thru_2": { "approach": "S", "lane": "thru", "position": "stopbar", "cv_zone": 5 },
+    "det_S_left":   { "approach": "S", "lane": "left", "position": "stopbar", "cv_zone": 6 },
+    "det_E_thru_1": { "approach": "E", "lane": "thru", "position": "stopbar", "cv_zone": 7 },
+    "det_E_thru_2": { "approach": "E", "lane": "thru", "position": "stopbar", "cv_zone": 8 },
+    "det_E_left":   { "approach": "E", "lane": "left", "position": "stopbar", "cv_zone": 9 },
+    "det_W_thru_1": { "approach": "W", "lane": "thru", "position": "stopbar", "cv_zone": 10 },
+    "det_W_thru_2": { "approach": "W", "lane": "thru", "position": "stopbar", "cv_zone": 11 },
+    "det_W_left":   { "approach": "W", "lane": "left", "position": "stopbar", "cv_zone": 12 }
+  },
+  "phases": {
+    "PHASE_1_N_S_THRU": {
+      "movements": ["N_thru", "S_thru"],
       "green_tags": ["Light_N_Green", "Light_S_Green"],
-      "yellow_tags": ["Light_N_Yellow", "Light_S_Yellow"]
+      "yellow_tags": ["Light_N_Yellow", "Light_S_Yellow"],
+      "red_tags": ["Light_N_Red", "Light_S_Red"]
     },
-    "PHASE_MAIN_LEFT": {
-      "green_tags": ["Light_NL_Green", "Light_SR_Green"],
-      "yellow_tags": ["Light_NL_Yellow", "Light_SR_Yellow"]
+    "PHASE_2_N_S_LEFT": {
+      "movements": ["N_left", "S_left"],
+      "green_tags": ["Light_NL_Green", "Light_SL_Green"],
+      "yellow_tags": ["Light_NL_Yellow", "Light_SL_Yellow"],
+      "red_tags": ["Light_NL_Red", "Light_SL_Red"]
     },
-    "PHASE_CROSS_THRU": {
-      "green_tags": ["Light_W_Green", "Light_E_Green"],
-      "yellow_tags": ["Light_W_Yellow", "Light_E_Yellow"]
+    "PHASE_3_E_W_THRU": {
+      "movements": ["E_thru", "W_thru"],
+      "green_tags": ["Light_E_Green", "Light_W_Green"],
+      "yellow_tags": ["Light_E_Yellow", "Light_W_Yellow"],
+      "red_tags": ["Light_E_Red", "Light_W_Red"]
     },
-    "PHASE_CROSS_LEFT": {
-      "green_tags": ["Light_WL_Green", "Light_ER_Green"],
-      "yellow_tags": ["Light_WL_Yellow", "Light_ER_Yellow"]
+    "PHASE_4_E_W_LEFT": {
+      "movements": ["E_left", "W_left"],
+      "green_tags": ["Light_EL_Green", "Light_WL_Green"],
+      "yellow_tags": ["Light_EL_Yellow", "Light_WL_Yellow"],
+      "red_tags": ["Light_EL_Red", "Light_WL_Red"]
+    },
+    "PHASE_PED_NS": {
+      "movements": ["ped_NS"],
+      "walk_tags": ["Ped_NS_Walk"],
+      "clear_tags": ["Ped_NS_Clear"]
+    },
+    "PHASE_PED_EW": {
+      "movements": ["ped_EW"],
+      "walk_tags": ["Ped_EW_Walk"],
+      "clear_tags": ["Ped_EW_Clear"]
     }
   }
 }
