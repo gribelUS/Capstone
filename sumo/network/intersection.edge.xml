@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edges xmlns="http://sumo.dlr.de/xsd/edges.xsd">
+    <!-- ========== NORTHBOUND APPROACH (from South, going North) ========== -->
+    <!-- Approach lanes -->
+    <edge id="N_thru_1" from="S_stop" to="center" numLanes="1" speed="13.89"/>
+    <edge id="N_thru_2" from="S_stop" to="center" numLanes="1" speed="13.89"/>
+    <edge id="N_left" from="S_stop" to="center" numLanes="1" speed="13.89"/>
+    <!-- Exit -->
+    <edge id="center_to_N" from="center" to="N_in" numLanes="3" speed="13.89"/>
+    
+    <!-- ========== SOUTHBOUND APPROACH (from North, going South) ========== -->
+    <edge id="S_thru_1" from="N_stop" to="center" numLanes="1" speed="13.89"/>
+    <edge id="S_thru_2" from="N_stop" to="center" numLanes="1" speed="13.89"/>
+    <edge id="S_left" from="N_stop" to="center" numLanes="1" speed="13.89"/>
+    <edge id="center_to_S" from="center" to="S_in" numLanes="3" speed="13.89"/>
+    
+    <!-- ========== EASTBOUND APPROACH (from West, going East) ========== -->
+    <edge id="E_thru_1" from="W_stop" to="center" numLanes="1" speed="13.89"/>
+    <edge id="E_thru_2" from="W_stop" to="center" numLanes="1" speed="13.89"/>
+    <edge id="E_left" from="W_stop" to="center" numLanes="1" speed="13.89"/>
+    <edge id="center_to_E" from="center" to="E_in" numLanes="3" speed="13.89"/>
+    
+    <!-- ========== WESTBOUND APPROACH (from East, going West) ========== -->
+    <edge id="W_thru_1" from="E_stop" to="center" numLanes="1" speed="13.89"/>
+    <edge id="W_thru_2" from="E_stop" to="center" numLanes="1" speed="13.89"/>
+    <edge id="W_left" from="E_stop" to="center" numLanes="1" speed="13.89"/>
+    <edge id="center_to_W" from="center" to="W_in" numLanes="3" speed="13.89"/>
+</edges>

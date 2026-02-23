@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<viewsettings>
+    <viewport x="0" y="0" zoom="100" angle="0"/>
+    <scheme name="standard"/>
+    <lighting value="true"/>
+    <delay value="100"/>
+    <scale value="auto"/>
+    <vehicleFontSize value="12"/>
+    <routeColor value="0.2,0.2,1,1"/>
+    <laneShowBorder value="true"/>
+    <showLinkDecals value="true"/>
+    <showLaneDirection value="true"/>
+    <showLaneBoundary value="true"/>
+</viewsettings>

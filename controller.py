@@ -13,6 +13,17 @@ except ImportError:
     LogixDriver = None
 
 
+SUMO_AVAILABLE = False
+try:
+    from sumo.sumo_interface import SUMOSimulation
+
+    SUMO_AVAILABLE = True
+except ImportError:
+    print(
+        "[CONTROLLER] SUMO interface not available. Use 'pip install traci sumolib' for SUMO support."
+    )
+
+
 class SystemConfig:
     def __init__(self, rules_path: str, hardware_path: str):
         self.rules = self._load_json(rules_path)
@@ -323,9 +334,8 @@ class TrafficDataWrapper:
 
     def get_vehicle_counts(self) -> dict:
         data = self._get_data()
-        mapped = self._map_zones_to_detectors(data)
         result = {}
-        for det_id, det_data in mapped.items():
+        for det_id, det_data in data.items():
             if isinstance(det_data, dict):
                 result[det_id] = det_data.get("count", 0)
             elif isinstance(det_data, int):
@@ -351,31 +361,55 @@ class TrafficController:
         simulate: bool = False,
         sim_host: str = "127.0.0.1",
         sim_port: int = 5556,
+        sim_type: str = "internal",
+        sumo_demand: str = "balanced",
     ):
         self.sys_config = SystemConfig(rules_path, hardware_path)
         self.rules = self.sys_config.rules
         self.hardware = self.sys_config.hardware
         self.simulate = simulate
+        self.sim_type = sim_type
 
         if simulate:
-            from simulation import SimulationClient, DirectSimulation
-
-            self.use_direct_sim = False
-            try:
-                self.sim_client = SimulationClient(sim_host, sim_port)
-                if self.sim_client.connect():
-                    print("[CONTROL] Connected to external simulation server")
-                    self.use_direct_sim = False
+            if sim_type == "sumo" and SUMO_AVAILABLE:
+                print(f"[CONTROL] Starting SUMO simulation with demand: {sumo_demand}")
+                self.sumo_sim = SUMOSimulation(self.rules)
+                demand_file = f"sumo/demand/{sumo_demand}.rou.xml"
+                if self.sumo_sim.connect(demand_file, gui=True):
+                    self.use_sumo = True
+                    print("[CONTROL] SUMO connected successfully")
                 else:
-                    print("[CONTROL] Starting internal simulation")
+                    print(
+                        "[CONTROL] SUMO connection failed, falling back to internal simulation"
+                    )
+                    self.use_sumo = False
+                    from simulation import DirectSimulation
+
+                    self.direct_sim = DirectSimulation(self.rules)
+                self.cv = None
+                self.sim_client = None
+                self.use_direct_sim = False
+            else:
+                from simulation import SimulationClient, DirectSimulation
+
+                self.use_sumo = False
+                self.sumo_sim = None
+                self.use_direct_sim = False
+                try:
+                    self.sim_client = SimulationClient(sim_host, sim_port)
+                    if self.sim_client.connect():
+                        print("[CONTROL] Connected to external simulation server")
+                        self.use_direct_sim = False
+                    else:
+                        print("[CONTROL] Starting internal simulation")
+                        self.use_direct_sim = True
+                        self.direct_sim = DirectSimulation(self.rules)
+                except Exception as e:
+                    print(f"[CONTROL] External sim unavailable, using internal: {e}")
                     self.use_direct_sim = True
                     self.direct_sim = DirectSimulation(self.rules)
-            except Exception as e:
-                print(f"[CONTROL] External sim unavailable, using internal: {e}")
-                self.use_direct_sim = True
-                self.direct_sim = DirectSimulation(self.rules)
 
-            self.cv = None
+                self.cv = None
         else:
             from cv_interface import CVInterface
 
@@ -383,6 +417,9 @@ class TrafficController:
             self.cv.connect()
             self.sim_client = None
             self.direct_sim = None
+            self.sumo_sim = None
+            self.use_sumo = False
+            self.use_direct_sim = False
 
         self.plc = PLCDriver(self.hardware)
         self.plc.connect()
@@ -398,7 +435,10 @@ class TrafficController:
 
     def _get_traffic_data(self):
         if self.simulate:
-            if not self.use_direct_sim and self.sim_client:
+            if self.use_sumo and self.sumo_sim:
+                self.sumo_sim.step(1.0)
+                return self.sumo_sim.get_zone_data()
+            elif not self.use_direct_sim and self.sim_client:
                 return self.sim_client.request_data()
             elif self.direct_sim:
                 self.direct_sim.update()
@@ -409,7 +449,9 @@ class TrafficController:
 
     def _has_demand(self, detector_ids: list) -> bool:
         if self.simulate:
-            if not self.use_direct_sim and self.sim_client:
+            if self.use_sumo and self.sumo_sim:
+                return self.sumo_sim.has_demand(detector_ids)
+            elif not self.use_direct_sim and self.sim_client:
                 data = self.sim_client.request_data()
             elif self.direct_sim:
                 return self.direct_sim.has_demand(detector_ids)
@@ -419,7 +461,9 @@ class TrafficController:
 
     def _get_total_demand(self, detector_ids: list) -> int:
         if self.simulate:
-            if not self.use_direct_sim and self.sim_client:
+            if self.use_sumo and self.sumo_sim:
+                return self.sumo_sim.get_total_demand(detector_ids)
+            elif not self.use_direct_sim and self.sim_client:
                 data = self.sim_client.request_data()
                 total = 0
                 hw = self.rules.get("cv_to_detector_map", {})
@@ -441,7 +485,10 @@ class TrafficController:
 
     def _notify_sim_phase(self, phase_name: str, is_green: bool):
         if self.simulate:
-            if not self.use_direct_sim and self.sim_client:
+            if self.use_sumo and self.sumo_sim:
+                if is_green:
+                    self.sumo_sim.set_active_phase(phase_name)
+            elif not self.use_direct_sim and self.sim_client:
                 self.sim_client.notify_phase(phase_name, is_green)
             elif self.direct_sim:
                 self.direct_sim.set_active_phase(phase_name)
@@ -534,6 +581,8 @@ class TrafficController:
         self.plc.all_red()
         self.plc.disconnect()
         if self.simulate:
+            if self.use_sumo and self.sumo_sim:
+                self.sumo_sim.disconnect()
             if self.sim_client:
                 self.sim_client.disconnect()
         else:
@@ -561,6 +610,25 @@ if __name__ == "__main__":
         "--sim-port", type=int, default=5556, help="Simulation server port"
     )
     parser.add_argument(
+        "--sim-type",
+        default="internal",
+        choices=["internal", "sumo"],
+        help="Simulation type: internal (built-in) or sumo (SUMO traffic simulation)",
+    )
+    parser.add_argument(
+        "--sumo-demand",
+        default="balanced",
+        choices=[
+            "balanced",
+            "morning_rush",
+            "evening_rush",
+            "east_west_heavy",
+            "north_south_heavy",
+            "light_traffic",
+        ],
+        help="Traffic pattern for SUMO simulation",
+    )
+    parser.add_argument(
         "--sim-pattern",
         default="balanced",
         choices=[
@@ -572,12 +640,16 @@ if __name__ == "__main__":
             "light_traffic",
             "heavy_traffic",
         ],
-        help="Traffic pattern for simulation",
+        help="Traffic pattern for internal simulation",
     )
     args = parser.parse_args()
 
     if args.simulate:
-        print(f"[CONTROL] Running in SIMULATION mode (pattern: {args.sim_pattern})")
+        print(f"[CONTROL] Running in SIMULATION mode (type: {args.sim_type})")
+        if args.sim_type == "sumo":
+            print(f"[CONTROL] SUMO demand pattern: {args.sumo_demand}")
+        else:
+            print(f"[CONTROL] Internal simulation pattern: {args.sim_pattern}")
 
     controller = TrafficController(
         args.rules,
@@ -587,5 +659,7 @@ if __name__ == "__main__":
         simulate=args.simulate,
         sim_host=args.sim_host,
         sim_port=args.sim_port,
+        sim_type=args.sim_type,
+        sumo_demand=args.sumo_demand,
     )
     controller.start()

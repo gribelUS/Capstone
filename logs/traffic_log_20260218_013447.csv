@@ -1,0 +1,11 @@
+timestamp,phase,duration_s,decision,reason,N_thru_count,S_thru_count,E_thru_count,W_thru_count,N_left_count,S_left_count,E_left_count,W_left_count
+2026-02-18T01:34:54.186408,PHASE_1_N_S_THRU,7.0,HOLD,min_green_not_met,0,0,0,0,0,0,0,0
+2026-02-18T01:34:56.186634,PHASE_1_N_S_THRU,9.0,HOLD,min_green_not_met,0,0,0,0,0,0,0,0
+2026-02-18T01:34:58.186818,PHASE_1_N_S_THRU,11.0,HOLD,min_green_not_met,0,0,0,0,0,0,0,0
+2026-02-18T01:35:00.186985,PHASE_1_N_S_THRU,13.0,HOLD,min_green_not_met,0,0,0,0,0,0,0,0
+2026-02-18T01:35:02.187237,PHASE_1_N_S_THRU,15.0,EXTEND,continuing,0,0,0,0,0,0,0,0
+2026-02-18T01:35:04.187435,PHASE_1_N_S_THRU,17.0,EXTEND,continuing,0,0,0,0,0,0,0,0
+2026-02-18T01:35:06.187612,PHASE_1_N_S_THRU,19.0,CHANGE,gap_out,0,0,0,0,0,0,0,0
+2026-02-18T01:35:19.188086,PHASE_3_E_W_THRU,7.0,HOLD,min_green_not_met,0,0,0,0,0,0,0,0
+2026-02-18T01:35:21.188304,PHASE_3_E_W_THRU,9.0,HOLD,min_green_not_met,0,0,0,0,0,0,0,0
+2026-02-18T01:35:23.188778,PHASE_3_E_W_THRU,11.0,HOLD,min_green_not_met,0,0,0,0,0,0,0,0

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<connections xmlns="http://sumo.dlr.de/xsd/connections.xsd">
+    <!-- ========== NORTHBOUND (from South) ========== -->
+    <!-- Thru lanes: N_thru_1, N_thru_2 -> center_to_N -->
+    <connection from="N_thru_1" to="center_to_N" fromLane="0" toLane="0"/>
+    <connection from="N_thru_2" to="center_to_N" fromLane="0" toLane="1"/>
+    <!-- Left turn: N_left -> center_to_W (turning west) -->
+    <connection from="N_left" to="center_to_W" fromLane="0" toLane="0"/>
+    
+    <!-- ========== SOUTHBOUND (from North) ========== -->
+    <connection from="S_thru_1" to="center_to_S" fromLane="0" toLane="0"/>
+    <connection from="S_thru_2" to="center_to_S" fromLane="0" toLane="1"/>
+    <!-- Left turn: S_left -> center_to_E (turning east) -->
+    <connection from="S_left" to="center_to_E" fromLane="0" toLane="0"/>
+    
+    <!-- ========== EASTBOUND (from West) ========== -->
+    <connection from="E_thru_1" to="center_to_E" fromLane="0" toLane="1"/>
+    <connection from="E_thru_2" to="center_to_E" fromLane="0" toLane="2"/>
+    <!-- Left turn: E_left -> center_to_N (turning north) -->
+    <connection from="E_left" to="center_to_N" fromLane="0" toLane="2"/>
+    
+    <!-- ========== WESTBOUND (from East) ========== -->
+    <connection from="W_thru_1" to="center_to_W" fromLane="0" toLane="1"/>
+    <connection from="W_thru_2" to="center_to_W" fromLane="0" toLane="2"/>
+    <!-- Left turn: W_left -> center_to_S (turning south) -->
+    <connection from="W_left" to="center_to_S" fromLane="0" toLane="2"/>
+</connections>

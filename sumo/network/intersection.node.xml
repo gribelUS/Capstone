@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nodes xmlns="http://sumo.dlr.de/xsd/nodes.xsd">
+    <!-- Center intersection node (traffic light) -->
+    <node id="center" x="0" y="0" type="traffic_light"/>
+    
+    <!-- North approach (Patteson Dr) -->
+    <node id="N_in" x="0" y="-500" type="priority"/>
+    <node id="N_stop" x="0" y="-50" type="priority"/>
+    
+    <!-- South approach -->
+    <node id="S_in" x="0" y="500" type="priority"/>
+    <node id="S_stop" x="0" y="50" type="priority"/>
+    
+    <!-- East approach (Monongahela Blvd) -->
+    <node id="E_in" x="500" y="0" type="priority"/>
+    <node id="E_stop" x="50" y="0" type="priority"/>
+    
+    <!-- West approach -->
+    <node id="W_in" x="-500" y="0" type="priority"/>
+    <node id="W_stop" x="-50" y="0" type="priority"/>
+</nodes>

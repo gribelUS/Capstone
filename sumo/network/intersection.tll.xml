@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tl-logics xmlns="http://sumo.dlr.de/xsd/traffic_lights.xsd">
+    <tlLogic id="center" type="static" programID="custom" offset="0">
+        <!-- Phase 0: N-S Through Green (both directions) -->
+        <phase duration="30" state="GGGgGGGg"/>
+        
+        <!-- Phase 1: N-S Yellow -->
+        <phase duration="4" state="yyygyyyy"/>
+        
+        <!-- Phase 2: All Red (clearance) -->
+        <phase duration="2" state="rrrrrrrr"/>
+        
+        <!-- Phase 3: N-S Left Turn Green -->
+        <phase duration="20" state="GGGgGGGg" />
+        
+        <!-- Phase 4: N-S Left Turn Yellow -->
+        <phase duration="4" state="yyygyyyy"/>
+        
+        <!-- Phase 5: All Red (barrier) -->
+        <phase duration="2" state="rrrrrrrr"/>
+        
+        <!-- Phase 6: E-W Through Green -->
+        <phase duration="30" state="GGGgGGGg"/>
+        
+        <!-- Phase 7: E-W Yellow -->
+        <phase duration="4" state="yyygyyyy"/>
+        
+        <!-- Phase 8: All Red (clearance) -->
+        <phase duration="2" state="rrrrrrrr"/>
+        
+        <!-- Phase 9: E-W Left Turn Green -->
+        <phase duration="20" state="GGGgGGGg"/>
+        
+        <!-- Phase 10: E-W Left Turn Yellow -->
+        <phase duration="4" state="yyygyyyy"/>
+        
+        <!-- Phase 11: All Red (barrier) -->
+        <phase duration="2" state="rrrrrrrr"/>
+    </tlLogic>
+</tl-logics>

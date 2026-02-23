@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes xmlns="http://sumo.dlr.de/xsd/routes.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sumo.dlr.de/xsd/routes.xsd">
+    <vType id="car" accel="2.6" decel="4.5" sigma="0.5" length="5" maxSpeed="50" color="1,1,1"/>
+    <vType id="truck" accel="1.5" decel="3.0" sigma="0.5" length="8" maxSpeed="40" color="0.8,0.8,0.2"/>
+    
+    <route id="N_thru" edges="N_thru_1 center_to_N"/>
+    <route id="N_thru_2" edges="N_thru_2 center_to_N"/>
+    <route id="S_thru" edges="S_thru_1 center_to_S"/>
+    <route id="S_thru_2" edges="S_thru_2 center_to_S"/>
+    <route id="E_thru" edges="E_thru_1 center_to_E"/>
+    <route id="E_thru_2" edges="E_thru_2 center_to_E"/>
+    <route id="W_thru" edges="W_thru_1 center_to_W"/>
+    <route id="W_thru_2" edges="W_thru_2 center_to_W"/>
+    <route id="N_left" edges="N_left center_to_W"/>
+    <route id="S_left" edges="S_left center_to_E"/>
+    <route id="E_left" edges="E_left center_to_N"/>
+    <route id="W_left" edges="W_left center_to_S"/>
+    
+    <!-- East-West Heavy: 500 veh/hr each direction -->
+    <flow id="N_thru_f1" route="N_thru" begin="0" end="3600" vehsPerHour="50" type="car" departLane="0"/>
+    <flow id="N_thru_f2" route="N_thru_2" begin="0" end="3600" vehsPerHour="50" type="car" departLane="0"/>
+    <flow id="S_thru_f1" route="S_thru" begin="0" end="3600" vehsPerHour="50" type="car" departLane="0"/>
+    <flow id="S_thru_f2" route="S_thru_2" begin="0" end="3600" vehsPerHour="50" type="car" departLane="0"/>
+    <flow id="E_thru_f1" route="E_thru" begin="0" end="3600" vehsPerHour="250" type="car" departLane="0"/>
+    <flow id="E_thru_f2" route="E_thru_2" begin="0" end="3600" vehsPerHour="250" type="car" departLane="0"/>
+    <flow id="W_thru_f1" route="W_thru" begin="0" end="3600" vehsPerHour="250" type="car" departLane="0"/>
+    <flow id="W_thru_f2" route="W_thru_2" begin="0" end="3600" vehsPerHour="250" type="car" departLane="0"/>
+    
+    <!-- Left turns: Heavy E, W -->
+    <flow id="N_left_f" route="N_left" begin="0" end="3600" vehsPerHour="25" type="car" departLane="0"/>
+    <flow id="S_left_f" route="S_left" begin="0" end="3600" vehsPerHour="25" type="car" departLane="0"/>
+    <flow id="E_left_f" route="E_left" begin="0" end="3600" vehsPerHour="150" type="car" departLane="0"/>
+    <flow id="W_left_f" route="W_left" begin="0" end="3600" vehsPerHour="150" type="car" departLane="0"/>
+</routes>

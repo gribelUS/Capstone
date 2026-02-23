@@ -50,7 +50,9 @@ class CVInterface:
             return self.last_data
         except (socket.timeout, socket.error, json.JSONDecodeError) as e:
             print(f"[CV] Error receiving data: {e}. Using cached data.")
-            return self.last_data if self.last_data else self._generate_simulated_data()
+            if self.last_data:
+                return self.last_data
+            return self._generate_simulated_data()
 
     def _map_zones_to_detectors(self, zone_data: dict) -> dict:
         result = {}

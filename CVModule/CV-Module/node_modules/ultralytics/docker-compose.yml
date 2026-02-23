@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgres://ultralytics:ultralytics@db:5432/ultralytics
+      - PORT=3000
+      - RATE_LIMIT_WINDOW_MS=60000
+      - RATE_LIMIT_MAX_REQUESTS=100
+      - RETENTION_DAYS=90
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:12-alpine
+    environment:
+      - POSTGRES_USER=ultralytics
+      - POSTGRES_PASSWORD=ultralytics
+      - POSTGRES_DB=ultralytics
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

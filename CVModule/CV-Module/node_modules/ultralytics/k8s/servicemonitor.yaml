@@ -1,0 +1,21 @@
+# ServiceMonitor for Prometheus Operator
+# Enables automatic scraping of Ultralytics metrics
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ultralytics
+  labels:
+    app: ultralytics
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: ultralytics
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+  namespaceSelector:
+    matchNames:
+      - default
