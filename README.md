@@ -54,7 +54,7 @@ python controller.py --simulate --sim-type sumo --sumo-demand balanced
 ### Option 4: Test with both CV and Simulation
 Terminal 1: Start CV
 ```bash
-cd "CV Module-20260217T230210Z-1-001/CV Module"
+cd "CVModule/CV Module"
 python yolo_test.py --video video.mp4 --port 5555
 ```
 
