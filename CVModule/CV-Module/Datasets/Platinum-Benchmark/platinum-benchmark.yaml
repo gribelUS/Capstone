@@ -2,7 +2,7 @@ names:
   0: person
   1: car
   2: bicycle
-path: /Users/jerinadkins/git/Capstone/CVModule/CV-Module/Datasets/Platinum-Benchmark
+path: C:\Users\jpa00011\Capstone\CVModule\CV-Module\Datasets\Platinum-Benchmark
 test: images
 train: images
 val: images
