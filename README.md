@@ -108,7 +108,7 @@ Vehicle counts come from SUMO's microscopic simulation:
 
 #### CV Module Mode (Real Camera)
 Vehicle counts come from YOLO object detection:
-- **Detection**: YOLO v8 identifies vehicles in video frames
+- **Detection**: YOLO v11 identifies vehicles in video frames
 - **Tracking**: Vehicles tracked across zones using unique IDs
 - **Count**: Vehicles currently in each detection zone
 - **Zone Mapping**: Video zones mapped to detector IDs via `cv_to_detector_map` in rules.json
