@@ -1,0 +1,12 @@
+# Ignore the massive training data
+**/Datasets/UA-DETRAC/
+**/Datasets/Platinum-Benchmark/labels.cache
+
+# Ignore training results and weights
+**/Custom YOLOv11n Model/
+*.pt
+*.zip
+
+# Ignore system files
+.DS_Store
+__pycache__/
