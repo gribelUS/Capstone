@@ -108,38 +108,34 @@ class SUMOClient:
         with open(temp_cfg, "w") as f:
             f.write(content)
 
-        cmd = []
-        if self.gui:
-            cmd.append("sumo-gui")
-        else:
-            cmd.append("sumo")
-
-        cmd.extend(
-            [
-                "-c",
-                temp_cfg,
-                "--remote-port",
-                str(self.port),
-                "--step-length",
-                "1.0",
-                "--no-step-log",
-                "--quit-on-end",
-            ]
-        )
-
+        sumo_cwd = os.path.dirname(os.path.abspath(config_path))
+        env = {**os.environ, "SUMO_HOME": self.sumo_home}
+        
+        cmd = ["/usr/bin/sumo"]
+        cmd.extend([
+            "-c", temp_cfg,
+            "--remote-port", str(self.port),
+            "--step-length", "1.0",
+            "--no-step-log",
+            "--quit-on-end",
+        ])
+        
         try:
             self.process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                cwd=sumo_cwd,
+                env=env,
             )
             time.sleep(2)
 
-            traci.init(port=self.port, numRetries=30)
+            traci.init(port=self.port, numRetries=10)
             self.connected = True
-            print(
-                f"[SUMO] Connected to SUMO {'GUI' if self.gui else 'server'} on port {self.port}"
-            )
+            if self.gui:
+                print(f"[SUMO] Connected (headless mode - GUI not available on this system)")
+            else:
+                print(f"[SUMO] Connected to SUMO server on port {self.port}")
             return True
 
         except Exception as e:
@@ -180,6 +176,33 @@ class SUMOClient:
         self.step_count += 1
         self._update_vehicle_data()
 
+    def _extract_lane_type(self, lane_id: str) -> str:
+        if lane_id.startswith("N_thru_1"):
+            return "N_thru_1"
+        elif lane_id.startswith("N_thru_2"):
+            return "N_thru_2"
+        elif lane_id.startswith("N_left"):
+            return "N_left"
+        elif lane_id.startswith("S_thru_1"):
+            return "S_thru_1"
+        elif lane_id.startswith("S_thru_2"):
+            return "S_thru_2"
+        elif lane_id.startswith("S_left"):
+            return "S_left"
+        elif lane_id.startswith("E_thru_1"):
+            return "E_thru_1"
+        elif lane_id.startswith("E_thru_2"):
+            return "E_thru_2"
+        elif lane_id.startswith("E_left"):
+            return "E_left"
+        elif lane_id.startswith("W_thru_1"):
+            return "W_thru_1"
+        elif lane_id.startswith("W_thru_2"):
+            return "W_thru_2"
+        elif lane_id.startswith("W_left"):
+            return "W_left"
+        return None
+
     def _update_vehicle_data(self):
         self.vehicle_data = {}
         current_time = traci.simulation.getTime()
@@ -190,11 +213,11 @@ class SUMOClient:
                 if not lane_id or lane_id == "":
                     continue
 
-                base_lane = lane_id.split("_")[0]
-                if base_lane not in LANE_TO_DETECTOR:
+                lane_type = self._extract_lane_type(lane_id)
+                if lane_type is None or lane_type not in LANE_TO_DETECTOR:
                     continue
 
-                detector_id = LANE_TO_DETECTOR[base_lane]
+                detector_id = LANE_TO_DETECTOR[lane_type]
                 speed = traci.vehicle.getSpeed(veh_id)
                 position = traci.vehicle.getPosition(veh_id)[0]
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration xmlns="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+<configuration>
     <input>
         <net-file value="/home/gribel/Capstone/sumo/network/intersection.net.xml"/>
         <route-files value="/home/gribel/Capstone/sumo/demand/balanced.rou.xml"/>
@@ -19,8 +19,4 @@
     <traci_server>
         <remote-port value="8813"/>
     </traci_server>
-    
-    <gui_only>
-        <gui-settings-file value="gui-settings.xml"/>
-    </gui_only>
 </configuration>

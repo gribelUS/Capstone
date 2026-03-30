@@ -335,13 +335,17 @@ class TrafficDataWrapper:
     def get_vehicle_counts(self) -> dict:
         data = self._get_data()
         result = {}
-        for det_id, det_data in data.items():
-            if isinstance(det_data, dict):
-                result[det_id] = det_data.get("count", 0)
-            elif isinstance(det_data, int):
-                result[det_id] = det_data
-            else:
-                result[det_id] = 0
+        
+        for zone_key, zone_data in data.items():
+            detector_id = self.cv_to_detector.get(zone_key)
+            if detector_id:
+                if isinstance(zone_data, dict):
+                    result[detector_id] = zone_data.get("count", 0)
+                elif isinstance(zone_data, int):
+                    result[detector_id] = zone_data
+                else:
+                    result[detector_id] = 0
+        
         return result
 
     def has_demand(self, detector_ids: list) -> bool:
