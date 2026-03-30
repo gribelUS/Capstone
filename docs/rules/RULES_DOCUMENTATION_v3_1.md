@@ -125,21 +125,21 @@ For CV-based detection, the system maps incoming CV data to virtual detector zon
 
 ```
 Ring 1                          Ring 2
-┌─────────────────────────┐      ┌─────────────────────────┐
-│  PHASE_1_N_S_THRU      │      │  PHASE_3_E_W_THRU      │
-│  (10-75s)              │      │  (10-75s)              │
-│  N_thru + S_thru       │      │  E_thru + W_thru       │
-│  det: 1,2,4,5          │      │  det: 7,8,10,11        │
-└────────────┬────────────┘      └────────────┬────────────┘
-             │                                 │
-             ▼                                 ▼
-┌─────────────────────────┐      ┌─────────────────────────┐
-│  PHASE_2_N_S_LEFT      │      │  PHASE_4_E_W_LEFT      │
-│  (6-18s, skip if no    │      │  (6-18s, skip if no    │
-│   demand)              │      │   demand)              │
-│  N_left + S_left       │      │  E_left + W_left       │
-│  det: 3,6              │      │  det: 9,12             │
-└─────────────────────────┘      └─────────────────────────┘
+┌─────────────────────────┐     ┌─────────────────────────┐
+│  PHASE_1_N_S_THRU       │     │  PHASE_3_E_W_THRU       │
+│  (10-75s)               │     │  (10-75s)               │
+│  N_thru + S_thru        │     │  E_thru + W_thru        │
+│  det: 1,2,4,5           │     │  det: 7,8,10,11         │
+└────────────┬────────────┘     └────────────┬────────────┘
+             │                               │
+             ▼                               ▼
+┌─────────────────────────┐     ┌─────────────────────────┐
+│  PHASE_2_N_S_LEFT       │     │  PHASE_4_E_W_LEFT       │
+│  (6-18s, skip if no     │     │  (6-18s, skip if no     │
+│   demand)               │     │   demand)               │
+│  N_left + S_left        │     │  E_left + W_left        │
+│  det: 3,6               │     │  det: 9,12              │
+└─────────────────────────┘     └─────────────────────────┘
 ```
 
 ---
