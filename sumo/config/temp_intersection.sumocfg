@@ -2,7 +2,7 @@
 <configuration>
     <input>
         <net-file value="/home/gribel/Capstone/sumo/network/intersection.net.xml"/>
-        <route-files value="/home/gribel/Capstone/sumo/demand/balanced.rou.xml"/>
+        <route-files value="/home/gribel/Capstone/sumo/demand/north_south_heavy.rou.xml"/>
     </input>
     
     <output>
