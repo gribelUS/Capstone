@@ -1,0 +1,90 @@
+{
+  "meta": {
+    "version": "3.1",
+    "description": "Fully Actuated Control - Throughput and Queue Optimized",
+    "kpi_target": "minimize_total_wait_time"
+  },
+  "timings": {
+    "yellow": 4.0,
+    "all_red": 2.0,
+    "ped_walk": 7.0,
+    "ped_clear": 15.0,
+    "extension_interval": 2.0
+  },
+  "phases": {
+    "PHASE_1_N_S_THRU": {
+      "ring": 1,
+      "sequence": 1,
+      "movements": ["N_thru", "S_thru"],
+      "min_green": 10,
+      "max_green": 75,
+      "passage_time": 3.0,
+      "detectors": ["det_N_thru_1", "det_N_thru_2", "det_S_thru_1", "det_S_thru_2"],
+      "ped_phase": "PHASE_PED_NS",
+      "recall": "min_green"
+    },
+    "PHASE_2_N_S_LEFT": {
+      "ring": 1,
+      "sequence": 2,
+      "movements": ["N_left", "S_left"],
+      "min_green": 6,
+      "max_green": 18,
+      "passage_time": 3.0,
+      "detectors": ["det_N_left", "det_S_left"],
+      "ped_phase": "PHASE_PED_NS",
+      "recall": "none"
+    },
+    "PHASE_3_E_W_THRU": {
+      "ring": 2,
+      "sequence": 1,
+      "movements": ["E_thru", "W_thru"],
+      "min_green": 10,
+      "max_green": 75,
+      "passage_time": 3.0,
+      "detectors": ["det_E_thru_1", "det_E_thru_2", "det_W_thru_1", "det_W_thru_2"],
+      "ped_phase": "PHASE_PED_EW",
+      "recall": "min_green"
+    },
+    "PHASE_4_E_W_LEFT": {
+      "ring": 2,
+      "sequence": 2,
+      "movements": ["E_left", "W_left"],
+      "min_green": 6,
+      "max_green": 18,
+      "passage_time": 3.0,
+      "detectors": ["det_E_left", "det_W_left"],
+      "ped_phase": "PHASE_PED_EW",
+      "recall": "none"
+    }
+  },
+  "ring_barrier": {
+    "barrier_1": ["PHASE_1_N_S_THRU", "PHASE_2_N_S_LEFT"],
+    "barrier_2": ["PHASE_3_E_W_THRU", "PHASE_4_E_W_LEFT"]
+  },
+  "decision_logic": {
+    "gap_out": {
+      "enabled": true,
+      "gap_threshold_sec": 2.0
+    },
+    "max_out": {
+      "enabled": true,
+      "force_change": true
+    },
+    "queue_threshold": 4,
+    "demand_waiting_threshold": 1
+  },
+  "cv_to_detector_map": {
+    "zone_1": "det_N_thru_1",
+    "zone_2": "det_N_thru_2",
+    "zone_3": "det_N_left",
+    "zone_4": "det_S_thru_1",
+    "zone_5": "det_S_thru_2",
+    "zone_6": "det_S_left",
+    "zone_7": "det_E_thru_1",
+    "zone_8": "det_E_thru_2",
+    "zone_9": "det_E_left",
+    "zone_10": "det_W_thru_1",
+    "zone_11": "det_W_thru_2",
+    "zone_12": "det_W_left"
+  }
+}
