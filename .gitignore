@@ -1,6 +1,8 @@
 # Ignore the massive training data
 **/Datasets/UA-DETRAC/
 **/Datasets/Platinum-Benchmark/labels.cache
+**/Datasets/sifted_ua_detrac/
+**/Datasets/traffic_final/
 
 # Ignore training results and weights
 **/Custom YOLOv11n Model/
