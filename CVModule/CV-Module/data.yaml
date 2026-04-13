@@ -1,4 +1,4 @@
-path: ./datasets/traffic_final 
+path: C:/Users/jpa00011/Capstone/CVModule/CV-Module/Datasets/traffic_final
 train: images/train
 val: images/val
 test: images/test

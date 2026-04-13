@@ -1,42 +1,61 @@
 import os
 import shutil
+from tqdm import tqdm
 
-# --- CONFIGURATION ---
-# Point these to where you downloaded UA-DETRAC
-raw_data_dir = './datasets/UA-DETRAC' 
-# This is where your new "Information-Dense" set will live
-output_base = './datasets/sifted_ua_detrac'
+# Configuration
+SOURCE_IMG_DIR = r'Datasets/UA-DETRAC/images'
+SOURCE_LBL_DIR = r'Datasets/UA-DETRAC/labels'
+SIFTED_DIR = r'Datasets/sifted_ua_detrac'
 
-def build_replicated_set(interval=20):
-    img_out = os.path.join(output_base, 'images')
-    lbl_out = os.path.join(output_base, 'labels')
+# Sifting rate: Take every Nth frame
+N = 20 
+
+def sift_data():
+    if not os.path.exists(SIFTED_DIR):
+        os.makedirs(os.path.join(SIFTED_DIR, 'images'))
+        os.makedirs(os.path.join(SIFTED_DIR, 'labels'))
+
+    # Get all sequence folders (MVI_XXXXX)
+    sequences = [d for d in os.listdir(SOURCE_IMG_DIR) if os.path.isdir(os.path.join(SOURCE_IMG_DIR, d))]
     
-    # This creates the 'datasets/sifted_ua_detrac/images' and '/labels' folders
-    os.makedirs(img_out, exist_ok=True)
-    os.makedirs(lbl_out, exist_ok=True)
-
-    # Assumes UA-DETRAC is organized by sequence folders (MVI_XXXXX)
-    sequences = [d for d in os.listdir(raw_data_dir) if os.path.isdir(os.path.join(raw_data_dir, d))]
+    print(f"Sifting {len(sequences)} sequences (Every {N}th frame)...")
     
-    total_kept = 0
-    for seq in sequences:
-        seq_path = os.path.join(raw_data_dir, seq)
-        # Replicating the 1-in-20 "Key Frame" strategy to boost Recall
-        frames = sorted([f for f in os.listdir(seq_path) if f.endswith('.jpg')])
+    total_copied = 0
+
+    for seq in tqdm(sequences):
+        img_seq_path = os.path.join(SOURCE_IMG_DIR, seq)
+        lbl_seq_path = os.path.join(SOURCE_LBL_DIR, seq)
         
-        for i in range(0, len(frames), interval):
-            img_name = frames[i]
-            lbl_name = img_name.replace('.jpg', '.txt')
-            
-            # Paths for labels (assuming they match image names)
-            src_img = os.path.join(seq_path, img_name)
-            src_lbl = os.path.join(raw_data_dir, 'labels', lbl_name) # Adjust based on your label path
-            
-            if os.path.exists(src_img) and os.path.exists(src_lbl):
-                shutil.copy(src_img, os.path.join(img_out, f"{seq}_{img_name}"))
-                shutil.copy(src_lbl, os.path.join(lbl_out, f"{seq}_{lbl_name}"))
-                total_kept += 1
+        # Ensure we have labels for this sequence
+        if not os.path.exists(lbl_seq_path):
+            continue
 
-    print(f"Success! Created {output_base} with {total_kept} unique frames.")
+        # Get all image files in the sequence
+        images = sorted([f for f in os.listdir(img_seq_path) if f.endswith('.jpg')])
+        
+        for i, img_name in enumerate(images):
+            if i % N == 0:
+                # Construct file names
+                base_name = os.path.splitext(img_name)[0]
+                label_name = base_name + '.txt'
+                
+                src_img = os.path.join(img_seq_path, img_name)
+                src_lbl = os.path.join(lbl_seq_path, label_name)
+                
+                # New unique filename to prevent overwrites (e.g., MVI_20011_img00001.jpg)
+                unique_name = f"{seq}_{img_name}"
+                unique_lbl = f"{seq}_{label_name}"
+                
+                dst_img = os.path.join(SIFTED_DIR, 'images', unique_name)
+                dst_lbl = os.path.join(SIFTED_DIR, 'labels', unique_lbl)
+                
+                # Copy files if the label exists
+                if os.path.exists(src_lbl):
+                    shutil.copy2(src_img, dst_img)
+                    shutil.copy2(src_lbl, dst_lbl)
+                    total_copied += 1
 
-build_replicated_set()
+    print(f"\nSifting complete! {total_copied} key-frames moved to {SIFTED_DIR}")
+
+if __name__ == "__main__":
+    sift_data()
