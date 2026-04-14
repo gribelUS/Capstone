@@ -1,0 +1,7 @@
+# data_2class.yaml
+train: ../Datasets/traffic_2class/images/train
+val: ../Datasets/traffic_2class/images/val
+test: ../Datasets/traffic_2class/images/test
+
+nc: 2
+names: ['Light_Vehicle', 'Heavy_HOV']
