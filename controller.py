@@ -148,6 +148,103 @@ class DecisionEngine:
         self.ring_barrier = rules_config.get("ring_barrier", {})
         self.timings = rules_config.get("timings", {})
 
+    def _is_left_phase(self, phase_name: str) -> bool:
+        movements = self.phases.get(phase_name, {}).get("movements", [])
+        return bool(movements) and all(movement.endswith("left") for movement in movements)
+
+    def _get_queue_threshold(self, phase_name: str) -> int:
+        pressure_cfg = self.decision_logic.get("phase_pressure", {})
+        if self._is_left_phase(phase_name):
+            return pressure_cfg.get(
+                "left_queue_threshold",
+                self.decision_logic.get("demand_waiting_threshold", 1),
+            )
+        return pressure_cfg.get(
+            "through_queue_threshold", self.decision_logic.get("queue_threshold", 2)
+        )
+
+    def _get_phase_metrics(self, phase_name: str, cv_interface) -> dict:
+        phase_config = self.phases.get(phase_name, {})
+        detectors = phase_config.get("detectors", [])
+        demand = cv_interface.get_total_demand(detectors)
+        total_wait = 0.0
+
+        if hasattr(cv_interface, "get_total_wait"):
+            total_wait = cv_interface.get_total_wait(detectors)
+
+        pressure_cfg = self.decision_logic.get("phase_pressure", {})
+        vehicle_weight = pressure_cfg.get(
+            "left_weight" if self._is_left_phase(phase_name) else "through_weight", 1.0
+        )
+        wait_weight = pressure_cfg.get("wait_time_weight", 0.0)
+        pressure = (demand * vehicle_weight) + (total_wait * wait_weight)
+
+        return {
+            "phase": phase_name,
+            "demand": demand,
+            "total_wait": total_wait,
+            "pressure": pressure,
+            "queue_threshold": self._get_queue_threshold(phase_name),
+            "recall": phase_config.get("recall"),
+            "ring": phase_config.get("ring"),
+            "sequence": phase_config.get("sequence", 0),
+        }
+
+    def _phase_is_service_eligible(self, metrics: dict) -> bool:
+        return metrics["demand"] >= metrics["queue_threshold"] or metrics["recall"] == "min_green"
+
+    def _get_service_candidates(self, current_phase: str, cv_interface) -> list[dict]:
+        candidates = []
+
+        for phase_name in self.phases:
+            if phase_name == current_phase:
+                continue
+
+            metrics = self._get_phase_metrics(phase_name, cv_interface)
+            if self._phase_is_service_eligible(metrics):
+                candidates.append(metrics)
+
+        return candidates
+
+    def _get_best_candidate_phase(self, current_phase: str, cv_interface) -> dict | None:
+        candidates = self._get_service_candidates(current_phase, cv_interface)
+        if not candidates:
+            return None
+
+        candidates.sort(
+            key=lambda metrics: (
+                metrics["pressure"],
+                metrics["demand"],
+                -metrics["sequence"],
+            ),
+            reverse=True,
+        )
+
+        return candidates[0]
+
+    def _get_competing_phase_metrics(self, current_phase: str, cv_interface) -> dict | None:
+        current_ring = self.phases.get(current_phase, {}).get("ring", 1)
+        current_sequence = self.phases.get(current_phase, {}).get("sequence", 1)
+        same_ring_next = None
+        other_ring_best = None
+
+        for metrics in self._get_service_candidates(current_phase, cv_interface):
+            if metrics["ring"] == current_ring:
+                if metrics["sequence"] > current_sequence:
+                    if same_ring_next is None or metrics["sequence"] < same_ring_next["sequence"]:
+                        same_ring_next = metrics
+                continue
+
+            if other_ring_best is None or metrics["demand"] > other_ring_best["demand"]:
+                other_ring_best = metrics
+
+        if same_ring_next and other_ring_best:
+            if same_ring_next["demand"] >= other_ring_best["demand"]:
+                return same_ring_next
+            return other_ring_best
+
+        return same_ring_next or other_ring_best
+
     def evaluate_phase(
         self, current_phase: str, phase_start_time: float, cv_interface
     ) -> tuple[str, str]:
@@ -160,11 +257,17 @@ class DecisionEngine:
 
         min_green = phase_config.get("min_green", 15)
         max_green = phase_config.get("max_green", 60)
-        passage_time = phase_config.get("passage_time", 3.0)
-        detectors = phase_config.get("detectors", [])
-
-        demand = cv_interface.get_total_demand(detectors)
-        has_call = demand > 0
+        passage_time = phase_config.get(
+            "passage_time",
+            self.decision_logic.get("gap_out", {}).get("gap_threshold_sec", 3.0),
+        )
+        current_metrics = self._get_phase_metrics(current_phase, cv_interface)
+        demand = current_metrics["demand"]
+        hold_threshold = self.decision_logic.get(
+            "current_phase_hold_threshold",
+            self.decision_logic.get("demand_waiting_threshold", 1),
+        )
+        has_call = demand >= hold_threshold
 
         if duration < min_green:
             if phase_config.get("recall") == "min_green" or has_call:
@@ -176,83 +279,53 @@ class DecisionEngine:
             return "CHANGE", "max_green_reached"
 
         if self.decision_logic.get("gap_out", {}).get("enabled"):
-            gap_threshold = self.decision_logic.get("gap_out", {}).get(
-                "gap_threshold_sec", 3.0
-            )
-            if not has_call and duration > (min_green + gap_threshold):
+            if not has_call and duration > (min_green + passage_time):
                 return "CHANGE", "gap_out"
 
-        other_demand = self._check_other_phases_demand(current_phase, cv_interface)
-        if other_demand and duration > min_green:
-            queue_threshold = self.decision_logic.get("queue_threshold", 2)
-            if other_demand >= queue_threshold:
+        competing_metrics = self._get_competing_phase_metrics(current_phase, cv_interface)
+        if competing_metrics and duration > min_green:
+            reallocation_margin = self.decision_logic.get(
+                "reallocation_margin",
+                self.decision_logic.get("queue_threshold", 2),
+            )
+            if competing_metrics["demand"] >= demand + reallocation_margin:
+                return "CHANGE", "other_phase_demand"
+
+            if competing_metrics["demand"] >= competing_metrics["queue_threshold"] and not has_call:
                 return "CHANGE", "other_phase_demand"
 
         return "EXTEND", "continuing"
 
-    def _check_other_phases_demand(self, current_phase: str, cv_interface) -> int:
-        current_ring = self.phases.get(current_phase, {}).get("ring", 1)
-        total_demand = 0
-
-        for phase_name, phase_config in self.phases.items():
-            if phase_name == current_phase:
-                continue
-            if phase_config.get("ring") == current_ring:
-                continue
-
-            detectors = phase_config.get("detectors", [])
-            demand = cv_interface.get_total_demand(detectors)
-            total_demand += demand
-
-        return total_demand
-
     def get_next_phase(self, current_phase: str, cv_interface) -> str:
+        best_candidate = self._get_best_candidate_phase(current_phase, cv_interface)
+        if best_candidate:
+            return best_candidate["phase"]
+
         current_ring = self.phases.get(current_phase, {}).get("ring", 1)
-        current_seq = self.phases.get(current_phase, {}).get("sequence", 1)
-
-        phases_in_ring = [
-            (name, cfg.get("sequence", 0))
-            for name, cfg in self.phases.items()
-            if cfg.get("ring") == current_ring
-        ]
-        phases_in_ring.sort(key=lambda x: x[1])
-
-        for i, (phase_name, seq) in enumerate(phases_in_ring):
-            if phase_name == current_phase:
-                next_idx = (i + 1) % len(phases_in_ring)
-                next_phase = phases_in_ring[next_idx][0]
-
-                detectors = self.phases[next_phase].get("detectors", [])
-                demand = cv_interface.get_total_demand(detectors)
-
-                if demand > 0 or self.phases[next_phase].get("recall") == "min_green":
-                    return next_phase
-
         barrier_1_phases = self.ring_barrier.get("barrier_1", [])
         barrier_2_phases = self.ring_barrier.get("barrier_2", [])
 
         if current_ring == 1:
-            other_ring_phases = barrier_2_phases
+            fallback = barrier_2_phases[0] if barrier_2_phases else current_phase
         else:
-            other_ring_phases = barrier_1_phases
+            fallback = barrier_1_phases[0] if barrier_1_phases else current_phase
 
-        for phase_name in other_ring_phases:
-            detectors = self.phases[phase_name].get("detectors", [])
-            demand = cv_interface.get_total_demand(detectors)
-            if demand > 0:
-                return phase_name
-
-        if current_ring == 1:
-            return barrier_2_phases[0] if barrier_2_phases else phases_in_ring[0][0]
-        else:
-            return barrier_1_phases[0] if barrier_1_phases else phases_in_ring[0][0]
+        return fallback
 
 
 class DataLogger:
-    def __init__(self, log_dir: str = "logs"):
+    def __init__(self, log_dir: str = "logs", run_label: str | None = None):
         os.makedirs(log_dir, exist_ok=True)
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.filepath = os.path.join(log_dir, f"traffic_log_{timestamp}.csv")
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        filename = f"traffic_log_{timestamp}.csv"
+
+        if run_label:
+            safe_label = "".join(
+                ch if ch.isalnum() or ch in {"-", "_"} else "_" for ch in run_label
+            )
+            filename = f"traffic_log_{safe_label}_{timestamp}.csv"
+
+        self.filepath = os.path.join(log_dir, filename)
         self.file = open(self.filepath, "w", newline="")
         self.writer = csv.writer(self.file)
         self.writer.writerow(
@@ -317,17 +390,30 @@ class TrafficDataWrapper:
         self.controller = controller
         self.rules = controller.rules
         self.cv_to_detector = self.rules.get("cv_to_detector_map", {})
+        self._cached_data = None
 
     def _get_data(self) -> dict:
+        if self._cached_data is not None:
+            return self._cached_data
+
         if self.controller.simulate:
-            return self.controller._get_traffic_data()
+            self._cached_data = self.controller._get_traffic_data()
         else:
-            return self.controller.cv.request_data()
+            self._cached_data = self.controller.cv.request_data()
+
+        return self._cached_data
+
+    def _resolve_detector_id(self, source_key: str) -> str | None:
+        if source_key in self.cv_to_detector:
+            return self.cv_to_detector[source_key]
+        if source_key in self.cv_to_detector.values():
+            return source_key
+        return None
 
     def _map_zones_to_detectors(self, zone_data: dict) -> dict:
         result = {}
         for zone_key, detections in zone_data.items():
-            detector_id = self.cv_to_detector.get(zone_key)
+            detector_id = self._resolve_detector_id(zone_key)
             if detector_id:
                 result[detector_id] = detections
         return result
@@ -337,7 +423,7 @@ class TrafficDataWrapper:
         result = {}
         
         for zone_key, zone_data in data.items():
-            detector_id = self.cv_to_detector.get(zone_key)
+            detector_id = self._resolve_detector_id(zone_key)
             if detector_id:
                 if isinstance(zone_data, dict):
                     result[detector_id] = zone_data.get("count", 0)
@@ -348,11 +434,32 @@ class TrafficDataWrapper:
         
         return result
 
+    def get_wait_times(self) -> dict:
+        data = self._get_data()
+        result = {}
+
+        for zone_key, zone_data in data.items():
+            detector_id = self._resolve_detector_id(zone_key)
+            if detector_id:
+                if isinstance(zone_data, dict):
+                    result[detector_id] = zone_data.get("wait_time", 0.0)
+                else:
+                    result[detector_id] = 0.0
+
+        return result
+
     def has_demand(self, detector_ids: list) -> bool:
-        return self.controller._has_demand(detector_ids)
+        counts = self.get_vehicle_counts()
+        return any(counts.get(det_id, 0) > 0 for det_id in detector_ids)
 
     def get_total_demand(self, detector_ids: list) -> int:
-        return self.controller._get_total_demand(detector_ids)
+        counts = self.get_vehicle_counts()
+        return sum(counts.get(det_id, 0) for det_id in detector_ids)
+
+    def get_total_wait(self, detector_ids: list) -> float:
+        counts = self.get_vehicle_counts()
+        waits = self.get_wait_times()
+        return sum(counts.get(det_id, 0) * waits.get(det_id, 0.0) for det_id in detector_ids)
 
 
 class TrafficController:
@@ -366,20 +473,24 @@ class TrafficController:
         sim_host: str = "127.0.0.1",
         sim_port: int = 5556,
         sim_type: str = "internal",
+        sim_pattern: str = "balanced",
         sumo_demand: str = "balanced",
+        sumo_port: int = 8813,
     ):
         self.sys_config = SystemConfig(rules_path, hardware_path)
         self.rules = self.sys_config.rules
         self.hardware = self.sys_config.hardware
         self.simulate = simulate
         self.sim_type = sim_type
+        self.sim_pattern = sim_pattern
+        self.sumo_demand = sumo_demand
 
         if simulate:
             if sim_type == "sumo" and SUMO_AVAILABLE:
                 print(f"[CONTROL] Starting SUMO simulation with demand: {sumo_demand}")
                 self.sumo_sim = SUMOSimulation(self.rules)
                 demand_file = f"sumo/demand/{sumo_demand}.rou.xml"
-                if self.sumo_sim.connect(demand_file, gui=True):
+                if self.sumo_sim.connect(demand_file, gui=True, port=sumo_port):
                     self.use_sumo = True
                     print("[CONTROL] SUMO connected successfully")
                 else:
@@ -390,6 +501,7 @@ class TrafficController:
                     from simulation import DirectSimulation
 
                     self.direct_sim = DirectSimulation(self.rules)
+                    self.direct_sim.set_traffic_pattern(sim_pattern)
                 self.cv = None
                 self.sim_client = None
                 self.use_direct_sim = False
@@ -408,10 +520,12 @@ class TrafficController:
                         print("[CONTROL] Starting internal simulation")
                         self.use_direct_sim = True
                         self.direct_sim = DirectSimulation(self.rules)
+                        self.direct_sim.set_traffic_pattern(sim_pattern)
                 except Exception as e:
                     print(f"[CONTROL] External sim unavailable, using internal: {e}")
                     self.use_direct_sim = True
                     self.direct_sim = DirectSimulation(self.rules)
+                    self.direct_sim.set_traffic_pattern(sim_pattern)
 
                 self.cv = None
         else:
@@ -434,7 +548,14 @@ class TrafficController:
         self.current_phase = phase_order[0] if phase_order else "PHASE_1_N_S_THRU"
         self.phase_start_time = time.time()
 
-        self.logger = DataLogger()
+        run_label = None
+        if self.simulate:
+            if self.sim_type == "sumo":
+                run_label = self.sumo_demand
+            else:
+                run_label = self.sim_pattern
+
+        self.logger = DataLogger(run_label=run_label)
         self.running = False
 
     def _get_traffic_data(self):
@@ -633,6 +754,12 @@ if __name__ == "__main__":
         help="Traffic pattern for SUMO simulation",
     )
     parser.add_argument(
+        "--sumo-port",
+        type=int,
+        default=8813,
+        help="TraCI port for SUMO. Use different ports for parallel SUMO runs.",
+    )
+    parser.add_argument(
         "--sim-pattern",
         default="balanced",
         choices=[
@@ -664,6 +791,8 @@ if __name__ == "__main__":
         sim_host=args.sim_host,
         sim_port=args.sim_port,
         sim_type=args.sim_type,
+        sim_pattern=args.sim_pattern,
         sumo_demand=args.sumo_demand,
+        sumo_port=args.sumo_port,
     )
     controller.start()

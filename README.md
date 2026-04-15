@@ -40,11 +40,34 @@ pip install traci sumolib
 python controller.py --simulate --sim-type sumo --sumo-demand balanced
 ```
 
+All built-in SUMO demand files now run for `21600` simulation seconds (`6` hours).
+
 | Flag | Description |
 |------|-------------|
 | `--simulate` | Tells controller to use simulation instead of camera |
 | `--sim-type` | Simulation type: internal or sumo |
 | `--sumo-demand` | SUMO traffic pattern: balanced, morning_rush, evening_rush, east_west_heavy, north_south_heavy, light_traffic |
+| `--sumo-port` | TraCI port for SUMO. Use different ports for parallel SUMO runs |
+
+### Parallel SUMO Runs
+Run different SUMO demand scenarios in parallel only if each controller uses a unique `--sumo-port` value so they do not share the same TraCI connection.
+
+```bash
+python controller.py --simulate --sim-type sumo --sumo-demand balanced --sumo-port 8813
+python controller.py --simulate --sim-type sumo --sumo-demand east_west_heavy --sumo-port 8814
+```
+
+To launch the full built-in SUMO demand suite in parallel:
+
+```bash
+bash scripts/run_sumo_parallel.sh
+```
+
+Optional environment variables:
+- `BASE_PORT=8913 bash scripts/run_sumo_parallel.sh`
+- `RULES_PATH=rules/rules_v3.json bash scripts/run_sumo_parallel.sh`
+
+The launcher writes one controller log per demand under `logs/sumo_batch_<timestamp>/`.
 
 **SUMO GUI:** When using `--sim-type sumo`, the SUMO GUI will open showing:
 - Real-time vehicle movement through the intersection

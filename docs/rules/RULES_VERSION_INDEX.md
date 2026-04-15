@@ -15,6 +15,8 @@ This directory keeps a documentation snapshot for each traffic-signal rules vers
 | 3.0 | `docs/rules/RULES_DOCUMENTATION.md` | Legacy baseline | Original documentation snapshot |
 | 3.1 | `docs/rules/RULES_DOCUMENTATION_v2.md` | Legacy iteration copy | First optimized copy created after tuning |
 | 3.1 | `docs/rules/RULES_DOCUMENTATION_v3_1.md` | Canonical | Preferred versioned filename using the standard scheme |
+| 3.2 | `docs/rules/RULES_DOCUMENTATION_v3_2.md` | Canonical | Throughput-first pressure-based optimization |
+| 4.0 | `docs/rules/RULES_DOCUMENTATION_v4_0.md` | Canonical | Actuated reallocation with bounded pressure next-phase selection |
 
 ## Usage
 
