@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <input>
-        <net-file value="network/intersection.net.xml"/>
-        <route-files value="demand/balanced.rou.xml"/>
+        <net-file value="/home/gribel/Capstone/sumo/network/intersection.net.xml"/>
+        <route-files value="/home/gribel/Capstone/sumo/demand/light_traffic.rou.xml"/>
     </input>
 
     <time>
@@ -11,7 +11,7 @@
     </time>
 
     <output>
-        <tripinfo-output value="tripinfo.xml"/>
+        <tripinfo-output value="/home/gribel/Capstone/sumo/config/tripinfo_8818.xml"/>
         <tripinfo-output.write-unfinished value="true"/>
     </output>
     
@@ -22,6 +22,6 @@
     </processing>
     
     <traci_server>
-        <remote-port value="8813"/>
+        <remote-port value="8818"/>
     </traci_server>
 </configuration>

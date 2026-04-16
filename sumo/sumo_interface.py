@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import subprocess
+import tempfile
 from typing import Optional, Dict, Any, List
 
 try:
@@ -84,6 +85,7 @@ class SUMOClient:
         self.step_count = 0
         self.vehicle_data: Dict[str, Dict] = {}
         self.current_phase = None
+        self.temp_config_path: Optional[str] = None
 
     def connect(self) -> bool:
         config_path = os.path.abspath(self.config_file)
@@ -103,9 +105,22 @@ class SUMOClient:
             content = f.read()
             content = content.replace("demand/balanced.rou.xml", demand_path)
             content = content.replace("network/intersection.net.xml", net_path)
+            tripinfo_path = os.path.join(cfg_dir, f"tripinfo_{self.port}.xml")
+            content = content.replace("tripinfo.xml", tripinfo_path)
+            content = content.replace(
+                '<remote-port value="8813"/>',
+                f'<remote-port value="{self.port}"/>',
+            )
 
-        temp_cfg = os.path.join(cfg_dir, "temp_" + cfg_name)
-        with open(temp_cfg, "w") as f:
+        temp_cfg_handle = tempfile.NamedTemporaryFile(
+            mode="w",
+            prefix=f"temp_{os.path.splitext(cfg_name)[0]}_{self.port}_",
+            suffix=".sumocfg",
+            dir=cfg_dir,
+            delete=False,
+        )
+        self.temp_config_path = temp_cfg_handle.name
+        with temp_cfg_handle as f:
             f.write(content)
 
         sumo_cwd = os.path.dirname(os.path.abspath(config_path))
@@ -113,7 +128,7 @@ class SUMOClient:
         
         cmd = ["/usr/bin/sumo"]
         cmd.extend([
-            "-c", temp_cfg,
+            "-c", self.temp_config_path,
             "--remote-port", str(self.port),
             "--step-length", "1.0",
             "--no-step-log",
@@ -158,6 +173,10 @@ class SUMOClient:
             except subprocess.TimeoutExpired:
                 self.process.kill()
             self.process = None
+
+        if self.temp_config_path and os.path.exists(self.temp_config_path):
+            os.unlink(self.temp_config_path)
+            self.temp_config_path = None
 
     def _get_lane_position(self, lane_id: str) -> float:
         try:
@@ -354,12 +373,16 @@ class SUMOSimulation:
         self.sumo_client: Optional[SUMOClient] = None
 
     def connect(
-        self, demand_file: str = "sumo/demand/balanced.rou.xml", gui: bool = False
+        self,
+        demand_file: str = "sumo/demand/balanced.rou.xml",
+        gui: bool = False,
+        port: int = 8813,
     ) -> bool:
         config_file = self.config.get("sumo_config", "sumo/config/intersection.sumocfg")
         self.sumo_client = SUMOClient(
             config_file=config_file,
             demand_file=demand_file,
+            port=port,
             gui=gui,
         )
         return self.sumo_client.connect()

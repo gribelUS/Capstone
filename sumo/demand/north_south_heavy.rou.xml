@@ -17,18 +17,18 @@
     <route id="W_left" edges="W_left center_to_S"/>
     
     <!-- North-South Heavy: 500 veh/hr each direction -->
-    <flow id="N_thru_f1" route="N_thru" begin="0" end="3600" vehsPerHour="250" type="car" departLane="0"/>
-    <flow id="N_thru_f2" route="N_thru_2" begin="0" end="3600" vehsPerHour="250" type="car" departLane="0"/>
-    <flow id="S_thru_f1" route="S_thru" begin="0" end="3600" vehsPerHour="250" type="car" departLane="0"/>
-    <flow id="S_thru_f2" route="S_thru_2" begin="0" end="3600" vehsPerHour="250" type="car" departLane="0"/>
-    <flow id="E_thru_f1" route="E_thru" begin="0" end="3600" vehsPerHour="50" type="car" departLane="0"/>
-    <flow id="E_thru_f2" route="E_thru_2" begin="0" end="3600" vehsPerHour="50" type="car" departLane="0"/>
-    <flow id="W_thru_f1" route="W_thru" begin="0" end="3600" vehsPerHour="50" type="car" departLane="0"/>
-    <flow id="W_thru_f2" route="W_thru_2" begin="0" end="3600" vehsPerHour="50" type="car" departLane="0"/>
+    <flow id="N_thru_f1" route="N_thru" begin="0" end="21600" vehsPerHour="250" type="car" departLane="0"/>
+    <flow id="N_thru_f2" route="N_thru_2" begin="0" end="21600" vehsPerHour="250" type="car" departLane="0"/>
+    <flow id="S_thru_f1" route="S_thru" begin="0" end="21600" vehsPerHour="250" type="car" departLane="0"/>
+    <flow id="S_thru_f2" route="S_thru_2" begin="0" end="21600" vehsPerHour="250" type="car" departLane="0"/>
+    <flow id="E_thru_f1" route="E_thru" begin="0" end="21600" vehsPerHour="50" type="car" departLane="0"/>
+    <flow id="E_thru_f2" route="E_thru_2" begin="0" end="21600" vehsPerHour="50" type="car" departLane="0"/>
+    <flow id="W_thru_f1" route="W_thru" begin="0" end="21600" vehsPerHour="50" type="car" departLane="0"/>
+    <flow id="W_thru_f2" route="W_thru_2" begin="0" end="21600" vehsPerHour="50" type="car" departLane="0"/>
     
     <!-- Left turns: Heavy N, S -->
-    <flow id="N_left_f" route="N_left" begin="0" end="3600" vehsPerHour="150" type="car" departLane="0"/>
-    <flow id="S_left_f" route="S_left" begin="0" end="3600" vehsPerHour="150" type="car" departLane="0"/>
-    <flow id="E_left_f" route="E_left" begin="0" end="3600" vehsPerHour="25" type="car" departLane="0"/>
-    <flow id="W_left_f" route="W_left" begin="0" end="3600" vehsPerHour="25" type="car" departLane="0"/>
+    <flow id="N_left_f" route="N_left" begin="0" end="21600" vehsPerHour="150" type="car" departLane="0"/>
+    <flow id="S_left_f" route="S_left" begin="0" end="21600" vehsPerHour="150" type="car" departLane="0"/>
+    <flow id="E_left_f" route="E_left" begin="0" end="21600" vehsPerHour="25" type="car" departLane="0"/>
+    <flow id="W_left_f" route="W_left" begin="0" end="21600" vehsPerHour="25" type="car" departLane="0"/>
 </routes>

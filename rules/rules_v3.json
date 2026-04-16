@@ -1,8 +1,8 @@
 {
   "meta": {
-    "version": "4.0",
-    "description": "Actuated Reallocation with Bounded Pressure Selection",
-    "kpi_target": "minimize_average_queue_and_maximize_throughput"
+    "version": "3.2",
+    "description": "Throughput-First Pressure-Based Optimization",
+    "kpi_target": "minimize_total_delay"
   },
   "timings": {
     "yellow": 4.0,
@@ -17,7 +17,7 @@
       "sequence": 1,
       "movements": ["N_thru", "S_thru"],
       "min_green": 10,
-      "max_green": 60,
+      "max_green": 65,
       "passage_time": 2.5,
       "detectors": ["det_N_thru_1", "det_N_thru_2", "det_S_thru_1", "det_S_thru_2"],
       "ped_phase": "PHASE_PED_NS",
@@ -28,7 +28,7 @@
       "sequence": 2,
       "movements": ["N_left", "S_left"],
       "min_green": 6,
-      "max_green": 16,
+      "max_green": 18,
       "passage_time": 2.0,
       "detectors": ["det_N_left", "det_S_left"],
       "ped_phase": "PHASE_PED_NS",
@@ -39,7 +39,7 @@
       "sequence": 1,
       "movements": ["E_thru", "W_thru"],
       "min_green": 10,
-      "max_green": 60,
+      "max_green": 65,
       "passage_time": 2.5,
       "detectors": ["det_E_thru_1", "det_E_thru_2", "det_W_thru_1", "det_W_thru_2"],
       "ped_phase": "PHASE_PED_EW",
@@ -50,7 +50,7 @@
       "sequence": 2,
       "movements": ["E_left", "W_left"],
       "min_green": 6,
-      "max_green": 16,
+      "max_green": 18,
       "passage_time": 2.0,
       "detectors": ["det_E_left", "det_W_left"],
       "ped_phase": "PHASE_PED_EW",
@@ -70,15 +70,14 @@
       "enabled": true,
       "force_change": true
     },
-    "queue_threshold": 3,
+    "queue_threshold": 4,
     "demand_waiting_threshold": 1,
-    "current_phase_hold_threshold": 1,
-    "reallocation_margin": 3,
     "phase_pressure": {
       "through_weight": 1.0,
-      "left_weight": 0.85,
-      "wait_time_weight": 0.02,
-      "through_queue_threshold": 3,
+      "left_weight": 0.6,
+      "wait_time_weight": 0.08,
+      "change_margin": 2.0,
+      "through_queue_threshold": 4,
       "left_queue_threshold": 2
     }
   },
