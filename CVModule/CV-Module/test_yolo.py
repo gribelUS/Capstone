@@ -10,6 +10,7 @@ if __name__ == '__main__':
         split='test',      # Crucial: uses the test set, not validation set
         imgsz=640,         # Keeps resolution consistent with training
         device=0,          # Forces the 4080 SUPER to do the work
+        conf=0.25,         # Standard confidence threshold for evaluation
         save_json=True,    # Saves coco_predictions.json for your final report
         plots=True         # Generates the test-specific confusion matrix
     )

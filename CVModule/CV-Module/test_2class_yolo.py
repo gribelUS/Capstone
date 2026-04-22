@@ -9,10 +9,10 @@ if __name__ == '__main__':
     # We set conf=0.25 to match the industry standard benchmark you mentioned
     results = model.val(
         data='data_2class.yaml', 
-        split='test', 
+        split='val', 
         imgsz=640, 
         device=0,
-        conf=0.44  
+        conf=0.25  
     )
 
     # 3. Extract and Format Metrics
