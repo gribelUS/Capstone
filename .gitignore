@@ -2,11 +2,9 @@
 **/Datasets/
 
 # Ignore training results and weights
-**/runs/
 *.zip
 **/*.cache
 **.pth
-**.pt
 
 # Ignore system files
 .DS_Store
