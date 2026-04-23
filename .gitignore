@@ -9,3 +9,7 @@
 # Ignore system files
 .DS_Store
 __pycache__/
+ffmpeg/
+
+# Ignore footage
+*.mp4
