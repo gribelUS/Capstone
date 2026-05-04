@@ -74,17 +74,101 @@ The launcher writes one controller log per demand under `logs/sumo_batch_<timest
 - Traffic light states (green/yellow/red)
 - Vehicle queues at each approach
 
-### Option 4: Test with both CV and Simulation
-Terminal 1: Start CV
+### Option 4: Run the Camera Vision Model
+
+The camera vision work lives under `CVModule/CV-Module` and uses Ultralytics YOLO.
+
+#### 1. Install dependencies
+
+From the repository root:
+
 ```bash
-cd "CVModule/CV Module"
-python yolo_test.py --video video.mp4 --port 5555
+pip install ultralytics
 ```
 
-Terminal 2: Start Controller connected to the real camera
+If you want to keep the CV dependencies isolated, activate the project virtual environment first:
+
 ```bash
-python controller.py --cv-port 5555
+source venv/bin/activate
 ```
+
+#### 2. Go to the CV module directory
+
+```bash
+cd CVModule/CV-Module
+```
+
+#### 3. Validate the trained 2-class model
+
+This runs the saved `best.pt` weights on the test split defined in `data_2class.yaml`.
+
+```bash
+python test_2class.py
+```
+
+Notes:
+- `test_2class.py` expects weights at `runs/detect/runs/detect/yolo11n_training_2class/weights/best.pt`
+- `data_2class.yaml` expects the dataset at `../Datasets/traffic_2class/`
+- The script uses `device=0`, so it expects a CUDA-capable GPU
+
+#### 4. Train or retrain the camera model
+
+```bash
+python train_2class.py
+```
+
+This starts YOLO training using:
+- base model: `yolo11n.pt`
+- dataset config: `data_2class.yaml`
+- output run: `runs/detect/yolo11n_training_2class`
+
+#### 5. Run inference on a video file, image, or webcam
+
+There is no dedicated live-inference script in this folder, but you can run the trained model directly with the Ultralytics CLI.
+
+Video file:
+
+```bash
+yolo predict model="runs/detect/runs/detect/yolo11n_training_2class/weights/best.pt" source="path/to/video.mp4"
+```
+
+Single image:
+
+```bash
+yolo predict model="runs/detect/runs/detect/yolo11n_training_2class/weights/best.pt" source="path/to/image.jpg"
+```
+
+Default webcam:
+
+```bash
+yolo predict model="runs/detect/runs/detect/yolo11n_training_2class/weights/best.pt" source=0
+```
+
+Ultralytics will write prediction outputs under `runs/detect/predict*`.
+
+#### 6. Benchmark the TensorRT engine
+
+If you have already exported `best.engine`, you can benchmark it with:
+
+```bash
+python benchmark_engine.py
+```
+
+#### 7. Connect CV output to the traffic controller
+
+The traffic controller reads CV data over TCP using `--cv-host` and `--cv-port`:
+
+```bash
+python controller.py --cv-host 127.0.0.1 --cv-port 5555
+```
+
+Important:
+- The controller expects a socket service that responds to `GET_DATA` with JSON zone counts
+- `cv_interface.py` contains the client used by `controller.py`
+- The server implementation in `cv_interface.py --mode server` is only a stub and returns placeholder zone data
+- This repository does not currently include a finished live-camera YOLO server that converts detections into `zone_*` counts for the controller
+
+Because of that, the controller can connect to a CV service, but a production-ready real-time camera bridge still needs to be implemented or added before full live camera operation will work end-to-end.
 
 ---
 
